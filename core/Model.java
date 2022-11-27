@@ -2,7 +2,9 @@ package core;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Random;
 import java.util.Scanner;
 
@@ -29,13 +31,13 @@ public class Model {
 		this.merge();
 		this.hist.clear();
 		this.showModel();
-		
+		this.test();
 	}
 	
 	private void test()
 	{
 		System.out.println("\nTesting model");
-		int ntest=1000;
+		int ntest=10;
 		int i;
 		int r1;
 		int r2;
@@ -48,8 +50,8 @@ public class Model {
 			r2 = (int) (r.nextInt((int) (this.max-this.min)) + this.min);
 			} while (r1>r2 || r1==r2);
 			//System.out.println();
-			double exact=exec("count",r1,r2);
-			double approx=exec_real("count",r1,r2);
+			double exact=exec_real("count",r1,r2);
+			double approx=exec("count",r1,r2);
 			double error=Math.abs(exact-approx)/exact;
 			final_error+=error;
 			//System.out.println("\nmin:"+r1+"\tmax:"+r2+"\texact:"+exact+"\tapprox:"+approx);
@@ -70,8 +72,8 @@ public class Model {
 			r2 = (int) (r.nextInt((int) (this.max-this.min)) + this.min);
 			} while (r1>r2 || r1==r2);
 			//System.out.println();
-			double exact=exec("count",r1,r2);
-			double approx=exec_real("count",r1,r2);
+			double exact=exec_real("count",r1,r2);
+			double approx=exec("count",r1,r2);
 			double error=Math.abs(exact-approx)/exact;
 			if(error<=mer)
 			{
@@ -88,8 +90,9 @@ public class Model {
 		
 	}
 	
-	private double exec_real(String function, double inf, double sup)
+	public double exec_real(String function, double inf, double sup)
 	{
+
 		File file = new File(this.fileName);
 		String line;
 		double num=0;
@@ -106,15 +109,8 @@ public class Model {
 	            num=Double.parseDouble(line);
 	            if(num>=inf && num<=sup) 
 	            {
-	            	if(function.equalsIgnoreCase("count"))
 	            		resultCount++;
-	            	if(function.equalsIgnoreCase("sum"))
 	            		resultSum+=num;
-	            	if(function.equalsIgnoreCase("avg"))
-	            	{
-	            		resultSum+=num;
-	            		resultCount++;
-	            	}
 	            		
 	            }
 	        }
@@ -139,6 +135,7 @@ public class Model {
 	
 	public double exec(String function, double inf, double sup)
 	{
+		
 		int n=this.mergedHist.size();
 		int i;
 		Bucket bucket;
@@ -179,6 +176,7 @@ public class Model {
 				
 			
 		}
+
 		
 		//System.out.println("Approx Result\t"+result);
 		return result;
@@ -227,7 +225,7 @@ public class Model {
 	        if(this.cv>=0.9) this.sp=90;
 
 		    //int nb=0;
-		    this.nb=this.length*this.sp/100;
+		    this.nb=(int) ((this.max-this.min)*this.sp/100);//this.length*this.sp/100;
 		    System.out.println("Sample Percentage\t"+this.sp);
 		    System.out.println("Initial Number of Buckets\t"+this.nb);
 	        
@@ -237,6 +235,7 @@ public class Model {
 	    {
 	        e.printStackTrace();
 	    }	    	    	  
+
 	}
 
 	
@@ -291,7 +290,7 @@ public class Model {
 			{
 				minb=min+(width*(j-1));
 				maxb=minb+width;
-				freq=this.countFreq(minb,maxb);
+				freq=0;//this.countFreq(minb,maxb);
 				Bucket bucket=new Bucket();
 				bucket.index=j;
 				bucket.min=minb;
@@ -300,12 +299,55 @@ public class Model {
 				//System.out.println("\tBucket "+j+"\tMin="+minb+"\tMax="+maxb+"\t#"+freq);
 				hist.add(bucket);							
 			}
-			//mer=this.test();
-			//if(mer<3) break;
-		//}
-		//System.out.println("\nFOUND #buckets:"+this.nb+"\tMER: "+mer);
+			this.countFreq2(hist);
+			
 	}
-	
+
+	private void countFreq2(ArrayList<Bucket> hist)
+	{
+		String line;
+		double num=0;
+		int n=0;
+		int i;
+		int count;
+		
+		File file = new File(this.fileName);
+        n=hist.size();
+	    try {
+	        Scanner scanner = new Scanner(file);
+	        
+	        while (scanner.hasNextLine()) 
+	        {
+	            line=scanner.nextLine();
+	            num=Double.parseDouble(line);
+	            
+	            for(i=0;i<n;i++)
+	            {
+	            	Bucket b=(Bucket) hist.get(i);
+	            	if(num>=b.min && num<b.max)
+	            	{
+	            		b.freq++;
+	            	}
+	            	hist.set(i, b);
+	            			            	
+	            }
+	            
+	        }
+	        scanner.close();
+	    }
+	    catch (FileNotFoundException e) 
+	    {
+	        e.printStackTrace();
+	    }
+
+		//return n;
+        for(i=0;i<n;i++)
+        {
+           	Bucket b=(Bucket) hist.get(i);
+           	System.out.println(i+ ") "+b.min+" "+b.max+" "+b.freq);
+        }
+	}
+
 	
 	
 	private int countFreq(double min,double max)
@@ -418,11 +460,11 @@ public class Model {
 		for(i=0;i<n;i++)
 		{
 			bucket=mergedHist.get(i);
-			System.out.println("\t"+i+"\tMin="+bucket.min+"\tMax="+bucket.max+"\t#"+bucket.freq);
+			//System.out.println("\t"+i+"\tMin="+bucket.min+"\tMax="+bucket.max+"\t#"+bucket.freq);
 			
 		}
 		
-		this.test();
+		
 	}
 	
 	
