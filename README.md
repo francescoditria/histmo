@@ -13,3 +13,6 @@ Model model = new Model(fileName);<br>
 //if the model fails then you can change basic parameter (ie, number of buckets)<br>
 int nb=4;<br>
 model.changeModel(nb);<br>
+
+Functions model.exec("count",min,max) and model.exec_real("count", min,max) return, respectively, the approximate query answer and the real query answer.
+
