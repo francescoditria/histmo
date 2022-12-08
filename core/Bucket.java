@@ -6,5 +6,6 @@ public class Bucket {
 	public double min;
 	public double max;
 	public int freq;
+	public double sum;
 	
 }

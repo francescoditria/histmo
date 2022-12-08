@@ -19,6 +19,7 @@ public class Model {
 	private int nb;
     private double cv;
     private int sp;
+    private double error;
 
 	private ArrayList<Bucket> hist=new ArrayList<Bucket>();
 	private ArrayList<Bucket> mergedHist=new ArrayList<Bucket>();
@@ -31,23 +32,171 @@ public class Model {
 		this.merge();
 		this.hist.clear();
 		this.showModel();
-		this.test();
+		this.errorTest();
+		this.confidenceTest();
+	}
+
+	
+	private void confidenceTest()
+	{
+		//System.out.println("\nTesting model");
+		int ntest=100;
+		int i;
+		int r1;
+		int r2;
+		Bucket[] testBucket = new Bucket[ntest];
+		double final_error=0;
+		for(i=0;i<ntest;i++)
+		{
+			do
+			{
+				Random r = new Random();
+				r1 = (int) (r.nextInt((int) (this.max-this.min)) + this.min);
+				r2 = (int) (r.nextInt((int) (this.max-this.min)) + this.min);
+			} while (r1>=r2);
+			//System.out.println("Test Bucket "+i);
+			Bucket b=new Bucket();
+			b.min=r1;
+			b.max=r2;
+			b.freq=0;
+			testBucket[i]=b;						
+		}
+		
+		
+		File file = new File(this.fileName);
+		String line;
+		double num=0;
+		double resultCount=0;
+		double resultSum=0;
+		double result=0;
+		
+	    try {
+	        Scanner scanner = new Scanner(file);
+	        
+	        while (scanner.hasNextLine()) 
+	        {
+	            line=scanner.nextLine();
+	            num=Double.parseDouble(line);
+	            
+	            for(i=0;i<ntest;i++)
+	            {
+	            	if(num>=testBucket[i].min && num<=testBucket[i].max) 
+	            	{
+	            		testBucket[i].freq++;
+	            		testBucket[i].sum+=num;
+	            	}
+	            }
+	        }
+	        
+	        scanner.close();
+
+	    } catch (FileNotFoundException e) {e.printStackTrace();}	    	    	  
+
+	    double conf=0;
+        for(i=0;i<ntest;i++)
+        {
+        	double exact=testBucket[i].freq;
+        	double approx=exec("count",testBucket[i].min,testBucket[i].max);
+			double error=Math.abs(exact-approx)/exact;
+			if(error<=this.error)
+			{
+				conf++;
+			}
+        }
+
+		//System.out.println("Confidence degree:\t"+conf);
+		double cd=(Math.round((conf/ntest*100) * 100.0) / 100.0);
+		System.out.println("Confidence degree:\t"+cd+"%");
+
+        
+	}
+
+	private void errorTest()
+	{
+		System.out.println("\nTesting model");
+		int ntest=100;
+		int i;
+		int r1;
+		int r2;
+		Bucket[] testBucket = new Bucket[ntest];
+		double final_error=0;
+		for(i=0;i<ntest;i++)
+		{
+			do
+			{
+				Random r = new Random();
+				r1 = (int) (r.nextInt((int) (this.max-this.min)) + this.min);
+				r2 = (int) (r.nextInt((int) (this.max-this.min)) + this.min);
+			} while (r1>=r2);
+			//System.out.println("Test Bucket "+i);
+			Bucket b=new Bucket();
+			b.min=r1;
+			b.max=r2;
+			b.freq=0;
+			testBucket[i]=b;						
+		}
+		
+		
+		File file = new File(this.fileName);
+		String line;
+		double num=0;
+		double resultCount=0;
+		double resultSum=0;
+		double result=0;
+		
+	    try {
+	        Scanner scanner = new Scanner(file);
+	        
+	        while (scanner.hasNextLine()) 
+	        {
+	            line=scanner.nextLine();
+	            num=Double.parseDouble(line);
+	            
+	            for(i=0;i<ntest;i++)
+	            {
+	            	if(num>=testBucket[i].min && num<=testBucket[i].max) 
+	            	{
+	            		testBucket[i].freq++;
+	            		testBucket[i].sum+=num;
+	            	}
+	            }
+	        }
+	        
+	        scanner.close();
+
+	    } catch (FileNotFoundException e) {e.printStackTrace();}	    	    	  
+
+		
+        for(i=0;i<ntest;i++)
+        {
+        	double exact=testBucket[i].freq;
+        	double approx=exec("count",testBucket[i].min,testBucket[i].max);
+			double error=Math.abs(exact-approx)/exact;
+			final_error+=error;			
+        }
+        double mer=(final_error*100/ntest);
+        double roundMer=Math.floor(mer * 100) / 100;
+		System.out.println("Mean Relative Error:\t"+roundMer+"%");
+		this.error=roundMer;
+        
 	}
 	
-	private void test()
+	
+	private void test_old()
 	{
 		System.out.println("\nTesting model");
 		int ntest=10;
 		int i;
 		int r1;
 		int r2;
+		Bucket[] testBucket = new Bucket[ntest];
 		double final_error=0;
 		for(i=0;i<ntest;i++)
 		{
 			do{
 			Random r = new Random();
 			r1 = (int) (r.nextInt((int) (this.max-this.min)) + this.min);
-			r2 = (int) (r.nextInt((int) (this.max-this.min)) + this.min);
+			r2 = (int) r1+(r.nextInt((int) (this.max-this.min)/2)); //(int) (r.nextInt((int) (this.max-this.min)) + this.min);
 			} while (r1>r2 || r1==r2);
 			//System.out.println();
 			double exact=exec_real("count",r1,r2);
@@ -69,7 +218,7 @@ public class Model {
 			do{
 			Random r = new Random();
 			r1 = (int) (r.nextInt((int) (this.max-this.min)) + this.min);
-			r2 = (int) (r.nextInt((int) (this.max-this.min)) + this.min);
+			r2 = (int) r1+(r.nextInt((int) (this.max-this.min)/2)); //(int) (r.nextInt((int) (this.max-this.min)) + this.min);
 			} while (r1>r2 || r1==r2);
 			//System.out.println();
 			double exact=exec_real("count",r1,r2);
