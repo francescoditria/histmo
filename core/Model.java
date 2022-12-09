@@ -461,7 +461,29 @@ public class Model extends Thread {
 				//System.out.println("\tBucket "+j+"\tMin="+minb+"\tMax="+maxb+"\t#"+freq);
 				hist.add(bucket);							
 			}
-			this.countFreq2(hist);
+			
+			//this.countFreq2(hist);
+			int k=hist.size();
+			Counter counter=new Counter();
+			counter.fileName=this.fileName;
+			counter.hist=this.hist;
+			counter.start=0;
+			counter.end=k/2;
+			counter.start();
+			
+			Counter counter2=new Counter();
+			counter2.fileName=this.fileName;
+			counter2.hist=this.hist;
+			counter2.start=(k/2)+1;
+			counter2.end=k;
+			counter2.start();
+			
+			while(counter.isAlive() || counter2.isAlive())
+			{
+			
+			}
+			//this.hist=counter.hist;
+			
 			
 	}
 
