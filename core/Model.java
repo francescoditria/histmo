@@ -8,7 +8,7 @@ import java.util.Date;
 import java.util.Random;
 import java.util.Scanner;
 
-public class Model {
+public class Model extends Thread {
 
 	private String fileName;
 	private double min;
@@ -21,6 +21,9 @@ public class Model {
     private int sp;
     private double error;
 
+    public double querymin;
+    public double querymax;
+    
 	private ArrayList<Bucket> hist=new ArrayList<Bucket>();
 	private ArrayList<Bucket> mergedHist=new ArrayList<Bucket>();
 	
@@ -36,6 +39,16 @@ public class Model {
 		this.confidenceTest();
 	}
 
+	
+	public void run()
+	{
+		double start_time= System.currentTimeMillis();
+		double res2=this.exec_real("count", this.querymin, this.querymax);
+		double end_time = System.currentTimeMillis();
+		double difference = (end_time - start_time)/1000;
+		System.out.println("Real\t"+res2+" "+difference);
+	
+	}
 	
 	private void confidenceTest()
 	{
@@ -465,6 +478,7 @@ public class Model {
 	    try {
 	        Scanner scanner = new Scanner(file);
 	        
+	        
 	        while (scanner.hasNextLine()) 
 	        {
 	            line=scanner.nextLine();
@@ -490,11 +504,13 @@ public class Model {
 	    }
 
 		//return n;
+	    /*
         for(i=0;i<n;i++)
         {
            	Bucket b=(Bucket) hist.get(i);
            	System.out.println(i+ ") "+b.min+" "+b.max+" "+b.freq);
         }
+        */
 	}
 
 	
