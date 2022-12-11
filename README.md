@@ -1,4 +1,4 @@
-# jhisto
+# histmo
 Histogram Modeling
 
 //generating csv unidimensional test file<br>
